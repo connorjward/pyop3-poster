@@ -236,7 +236,7 @@
 
 \usepackage{caption} % Required for customizing captions
 
-\DeclareCaptionFormat{anyfontsize}{\iftoggle{a1papersize}{\fontsize{10pt}{12.5pt}\selectfont}{\fontsize{14pt}{17.5pt}\selectfont}#1#2#3} % Font size of captions in a new caption style
+\DeclareCaptionFormat{anyfontsize}{\iftoggle{a1papersize}{\fontsize{14pt}{17.5pt}\selectfont}{\fontsize{14pt}{17.5pt}\selectfont}#1#2#3} % Font size of captions in a new caption style
 \captionsetup{format=anyfontsize, labelfont=bf} % Activate the custom caption style and style labels
 \captionsetup{justification=justified, singlelinecheck=false} % Left-align captions
 

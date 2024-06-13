@@ -1,0 +1,12 @@
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+_minted-codegen/
+*.pdf
+*.bbl
+*.bcf
+*.bcg
+*.blg
+*.out
+*.xml

@@ -1,0 +1,23 @@
+\documentclass[tikz]{standalone}
+\input{figures/common/preamble}
+
+\begin{document}
+\begin{tikzpicture}
+
+  \input{figures/common/element.tikz}
+
+  \defTriangle
+  \drawTriangle
+
+  \tkzDrawPoints[fill=black,minimum size=5pt](v0,v1,v2)
+
+  \tkzLabelPoint[below left](v0){$v_0$}
+  \tkzLabelPoint[below right](v1){$v_1$}
+  \tkzLabelPoint[above left](v2){$v_2$}
+  \tkzLabelPoint[above right](e0){$e_0$}
+  \tkzLabelPoint[left](e1){$e_1$}
+  \tkzLabelPoint(e2){$e_2$}
+  \tkzLabelPoint[centered](c0){$c_0$}
+
+\end{tikzpicture}
+\end{document}

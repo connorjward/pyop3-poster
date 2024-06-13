@@ -25,271 +25,214 @@
 
 \documentclass[
 	%print, % Uncomment to convert colors to CMYK for printing purposes
-	%a1papersize, % Uncomment to use an A1 paper size instead of the default A0 paper size
+	a1papersize, % Uncomment to use an A1 paper size instead of the default A0 paper size
 ]{ImperialPoster}
+
+\usepackage[style=numeric,maxnames=2,minnames=2]{biblatex} % bibliography
+	\addbibresource{bibliography.bib}
+	\AtBeginBibliography{\small}
+	\AtEveryBibitem{
+		\clearfield{month}
+		\clearfield{series}
+		\clearfield{venue}
+		\clearname{editor}
+		\clearlist{publisher}
+		\clearlist{location} % alias to field 'address'
+		\clearfield{doi}
+		\clearfield{url}
+		\clearfield{venue}
+		\clearfield{issn}
+		\clearfield{isbn}
+		\clearfield{urldate}
+		\clearfield{eventdate}
+		\clearfield{pages}
+		\clearfield{eventtitle}
+		\clearfield{conference}
+		\clearfield{journaltitle}
+		%\clearfield{number}
+		%\clearfield{volume}
+	}
+
+\usepackage{subcaption} % subfigures
+
+% hacky way to get \pyop2 and \pyop3 as valid macros
+% source: https://tex.stackexchange.com/questions/13290/how-to-define-macros-with-numbers-in-them
+\def\pyop#1{\ifnum#1=2 {PyOP2}\else \ifnum#1=3 {\texttt{pyop3}}\fi \fi}
 
 %----------------------------------------------------------------------------------------
 %	POSTER INFORMATION
 %----------------------------------------------------------------------------------------
 
-\postertitle{Title\\ Short and snappy, with the main message} % The poster title, can be split across multiple lines manually with \\
+\postertitle{\LARGE{\texttt{pyop3:}}\\ \large{An Execution Abstraction for Compact\\ Computational Kernels on Unstructured Meshes}}
 
 % Contributor/author names, can be split across multiple lines manually with \\
 % Add affiliations using the \affiliation{} command
-\posterauthors{Name of contributor\affiliation{1, 2},\\ Name of contributor\affiliation{1},\\ Name of contributor\affiliation{3}\\~\\~}
+\posterauthors{Connor J. Ward\\ David A. Ham\\ Jack D. Betteridge\\~\\c.ward20@imperial.ac.uk}
 
 % Command to output coauthor logos to the right of the Imperial logo in the header of the poster
 % If no coauthor logos are required, remove or comment out this command
 \coauthorlogos{
-	\coauthorlogo[4cm]{Grey_16-9.pdf} % Use the optional parameter to specify a height for the logo
-	\coauthorlogo[4cm]{Grey_16-9.pdf} % Use the optional parameter to specify a height for the logo
-	\coauthorlogo{Grey_16-9.pdf} % Not specifying the optional parameter will make the logo the same height as the Imperial logo
+	\coauthorlogo[3.5cm]{firedrake.png}
 }
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+% The execution of compact computational kernels is ubiquitous in continuum mechanics simulations.
+% These "local" kernels, often hand-written, are executed repeatedly as part of an outer loop
+% over (usually) the cells or facets of the mesh, with the relevant parts of the global data
+% structures loaded into local temporaries as required.
+%
+% Whilst initially appearing to be a simple task, this pack/unpack execution model is
+% surprisingly complicated. Performance portability considerations often require intrusive
+% changes (e.g. data layout transformations, different programming languages, manual
+% vectorisation) that would require either rewriting the outer loop time and time again or
+% sacrificing performance.
+%
+% In this work we present pyop3, a new framework for handling mesh iteration problems. pyop3
+% uses code generation to produce the different loops automatically from a high-level
+% representation. Core to its design is a novel data layout abstraction that bridges the gap
+% between unstructured mesh data and traditional N-dimensional arrays. Work is currently under
+% way to integrate pyop3 into the finite element package Firedrake, with the hope that it
+% facilitates the development of new numerical methods and performance optimisations.
 
 %----------------------------------------------------------------------------------------
 
 \begin{document}
 
+\titlesection
+
+\begin{multicols}{2}
+
 %----------------------------------------------------------------------------------------
-%	EXAMPLE POSTER LAYOUT 1
+%	FIRST COLUMN
 %----------------------------------------------------------------------------------------
 
-\titlesection % Output the title section, automatically populated using the information in the POSTER INFORMATION block above
+\section{1. Motivation}
 
-\begin{multicols}{3} % Start the three-column layout
-	
-	%----------------------------------------------------------------------------------------
-	%	FIRST COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\subsection{Subsection Title}
-	
-	Adi cum fugia qui dolo ommodit quia venisi saperat iscim qsequae nobissitat.
-	
-	Sed que perspic ipsanihit quunt aligenist re reperehendia \textcolor{ICLBlue}{apicias re pellectur sustentur?}
-	
-	Ehendios \textcolor{ICLBlue}{dolores} ni dolut acero del mint apid esto bernatendem eum \textcolor{ICLBlue}{atqui delisti opta} aliquam il id quam fuguist, eum rerferesto conserro berionectio. Alitatu saperat iscim qsequae. Itatur alissiment quias nia soluptatur? Ihit, tem quam lab imusdaeptas.
-	
-	\begin{quote}
-		"Pull Quote/Subtitle. Ut in gother comnihic totatem apietur, ium audi imus vent ipsum volup ta veniscil dolut acero del mint."
-	\end{quote}
-	
-	\vspace{20pt} % Vertical whitespace to ensure figure alignment
-	
-	\begin{figure}[H] % [H] forces the figure to be output where it is defined in the code (it suppresses floating)
-		\includegraphics[width=\linewidth]{Grey_4-3.pdf} % Figure image
-		\caption{Figure caption. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor arcu luctus, imperdiet urna iaculis, mattis eros.}
-	\end{figure}
-	
-	\subsection{Subsection Title}
-	
-	Adi cum fugia qui dolo ommodit quia venisi saperat iscim qsequae nobissitat.
-	
-	Sed que perspic ipsanihit quunt aligenist re reperehendia apicias re pellectur sus, tentur? 
-	
-	\begin{table}[H] % [H] forces the table to be output where it is defined in the code (it suppresses floating)
-		\caption{Experimental results.}
-		\begin{tabular}{L{0.26\linewidth} C{0.26\linewidth} R{0.26\linewidth}}
-			\toprule
-			Treatment & Quantity & Response\\
-			\midrule
-			AAA & 10mL & 0.944\\
-			AAA & 150mL & 0.527\\
-			BBB & 20mL & 0.263\\
-			BBB & 2,000mL & 0.818\\
-			\bottomrule
-		\end{tabular}
-	\end{table}
-		
-	\columnbreak % Switch to the next column
-	
-	%----------------------------------------------------------------------------------------
-	%	SECOND COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\section{Section Title}
-	
-	Equae es nobissitat hitatum estis quodit larib ustotatet etur aut exere estint eium ium expeb usantis sae maio omnis consed quam reici voluptam ipistio. Arum, se velliquosam, oms evelendici derroruptius debitis quunto
-	
-	\smalltext{Equae es nobissitat hitatum estis quodit larib ustotatet etur aut exere estint eium ium expeb usantis sae maio omnis consed quam reici voluptam ipistio. Arum, se velliquosam, oms evelendici derroruptius debitis quunto rempersperia nulluptatis culpario. Itatur alissiment quias nia soluptatur? Ihit, tem quam lab imusdaeptas exerum fugia.} % Use \smalltext or an enclosed \small for a block of text in a reduced font size
-	
-	\begin{figure}[H] % [H] forces the figure to be output where it is defined in the code (it suppresses floating)
-		\includegraphics[width=0.66\textwidth]{Grey_4-3.pdf} % Figure image
-		\parbox{0.66\textwidth}{\caption{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor arcu luctus, imperdiet urna iaculis, mattis eros. Pellentesque iaculis odio vel nisl ullamcorper, nec faucibus ipsum molestie. Sed dictum nisl non aliquet porttitor. Etiam vulputate arcu dignissim, finibus sem et, viverra nisl. Aenean luctus congue massa, ut laoreet metus ornare in. Nunc fermentum nisi imperdiet lectus tincidunt vestibulum at ac elit.}} % Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\end{figure}
-	
-	\largepercent{95\%} % Large bold percentage figure
-	
-	Equae es nobissitat hitatum estis quodit larib usantis sae maio omnis cam reici
-	
-	\boldsection{Arum alis dolum aut pe dolorestem cone vertis} % Output some bold text to stand out from the body text
-	
-	\begin{itemize}
-		\item Lorem ipsum
-		\item Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-		\item Praesent porttitor.
-	\end{itemize}
-	
-	\columnbreak % Switch to the next column
-	
-	%----------------------------------------------------------------------------------------
-	%	THIRD COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\section{Section Title}
-	
-	{
-		\small % Use \smalltext or an enclosed \small for a block of text in a reduced font size
-		Obisim qui quiae porum ea volorenis eic tem andae nus, verem expligento tecum eos quo magnihit inis sunt di dolupta tiuntem qui ipid moluptatquam idio. Itinturia vellam in none velit quat landi ium faci dolum volut as ea cus.
+* Numerically solving PDEs over unstructured meshes requires one to loop over mesh
+  entities and perform "local" computations in regions.
+* For example, in the finite element method, ...
 
-		At ad qui venihillum renderi aeperib erciligendae non eossunto magniat.Enietur, ut volorit esedipit volorem et eium apiendae vel id endes dolo ex etur mos planit, non eos eosam, sentiis aut abo. Itatur alissiment quias nia soluptatur? Ihit, tem quam lab imusdaeptas exerum fugia dis re, cus maximporerum quis aliquam et aut ra dolumqu iatetur? Quidus minit
+* The variables in the system of equations (the DoFs) are associated with the different
+  mesh entities. So when doing these loops one needs to express both the iteration
+  regime (?) as well as the indirections from cells (e.g.) to supported DoFs.
 
-		Am conet, ut occaerum ant eatibusdae sit, nus etur? Mincia cone verum qui dis nobitatur sequodi oriaepuda sim.\par
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.4\textwidth]{fem_assembly.pdf}
+	\parbox{0.49\textwidth}{
+		\caption{
+			The assembly process for the finite element method.
+			DoFs local to a cell are collected in a small array which is then used to perform the cell-wise computation with the result being scattered back to a global vector or matrix.
+		}
+		\label{fig:fem_assembly}
 	}
-	
-	\vspace{0.405\textheight} % Vertical whitespace to push the content below to be below the figure, needs to be manually adjusted depending on the height of the figure
-	
-	\section{Section Title}
-	
-	Equae es nobissitat hitatum estis quodit larib ustotatet etur aut exere estint eium ium expeb usantis sae maio omnis consed quam reici voluptam ipistio.
-	
-	\subsection{Affiliations}
-	
-	% Affiliation institutions, the first parameter is the affiliation number (matching the author list) and the second is the institution
-	\affiliationentry{1}{Department Name, Imperial College London}\\
-	\affiliationentry{2}{University Name}\\
-	\affiliationentry{3}{Institute Name}
-	
-	\subsection{Funders}
-	
-	\includegraphics[width=0.55\linewidth]{UKRI_logo.png}\hfill\includegraphics[width=0.35\linewidth]{Grey_16-9.pdf} % Side by side funder logos
-	
+\end{figure}
+
+% NOTE: uncomment
+% * Whilst appearing initially simple to write by hand, this operation has number of
+%   subtleties (itemize):
+%   * Different systems of equations require different bits of packing code, changing
+%     discretisation etc requires a rewrite.
+%   * Parallel scheduling and data validity (shared+distributed memory)
+%   * vectorisation
+%   * target different backends/languages (e.g. CUDA, C, HIP)
+%   * data layout assumptions "baked in" (e.g. adaptivity is hard, AoS/SoA)
+
+\begin{center}
+	\begin{quote}
+		\textcolor{ICLBlue}{"With great composability comes\\ great (expressive) power"}
+	\end{quote}
+\end{center}
+
+% NOTE: uncomment
+% * This combinatorial complexity means that one must either write individual kernels
+%   by hand, or provide an abstraction that captures the full semantics.
+% * Code generation allows us to generate near-equivalent code that would be handwritten.
+%   * Library interfaces inevitably sacrifice performance or expressiveness or maintainability
+
+A number of libraries exist that already provide this abstraction.
+However they all suffer from either:
+(1) having a custom mesh abstraction, and hence being unable to use mature existing packages (e.g.~\cite{kjolstadSimitLanguagePhysical2016}), or
+(2) having no concept of a mesh altogether, which hinders composability (e.g.~\cite{rathgeberPyOP2HighLevelFramework2012}).
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.4\textwidth]{codegen.pdf}
+	\label{fig:codegen}
+\end{figure}
+
+\columnbreak
+
+%----------------------------------------------------------------------------------------
+%	SECOND COLUMN
+%----------------------------------------------------------------------------------------
+
+\section{2. Introducing \pyop3}
+
+To bridge this divide, we introduce \pyop3, a new abstraction for applying local computations to a mesh.
+The design of \pyop3 is inspired by its precursor, \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and PETSc~\cite{petsc-user-ref}, a popular PDE toolkit.
+Powered by a novel abstraction for representing mesh data, \pyop3 can \textcolor{ICLBlue}{generate efficient code} in just a handful of lines of Python code (Figure~\ref{fig:codegen}).
+
+\section{3. A new abstraction for mesh data}
+
+To reconcile the need for composability with the need to be able to generate low-level code, \pyop3 introduces a new abstraction for representing mesh data.
+From the reference elements in Figure~\ref{fig:sv_element} and the data layout in Figure~\ref{fig:dof_layout} it is clear that
+(a) there is some structure present, and
+(b) this structure is not sufficiently uniform to be represented as an N-dimensional array.
+\textcolor{ICLBlue}{\pyop3 generalises N-dimensional arrays to mesh data structures by representing them as trees.}
+
+\begin{figure}[H]
+	\centering
+	\hfill
+	\begin{subfigure}{.16\textwidth}
+		\centering
+		\includegraphics[width=.8\textwidth]{ref_triangle.pdf}
+	\end{subfigure}
+	\begin{subfigure}{.16\textwidth}
+		\centering
+		\includegraphics[width=.8\textwidth]{lagrange_element_3_vec.pdf}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{.16\textwidth}
+		\centering
+		\includegraphics[width=.8\textwidth]{lagrange_element_2_dg.pdf}
+	\end{subfigure}
+	\hfill
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{0.49\textwidth}{\caption{
+		The Scott-Vogelius finite element pair (middle and right) for the reference triangle (left).
+		DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
+		The lower-order element (right) is discontinuous, so all the DoFs are considered to belong to the cell.
+		\label{fig:sv_element}
+	}}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=0.49\textwidth]{sv_element_dof_layout.pdf}
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{0.49\textwidth}{
+		\caption{
+			A possible data layout for the DoFs of a one-cell mesh for the finite element pair in Figure~\ref{fig:sv_element}.
+			The labels $V_h$ and $Q_h$ represent the function spaces of the two elements.
+		}
+		\label{fig:dof_layout}
+	}
+\end{figure}
+
+\section{4. Future work}
+
+% GPUs, slope limiters, adaptivity, orientations?, ASM
+
+% TODO: narrow
+\subsection{References}
+
+\printbibliography[heading=none]
+
 %----------------------------------------------------------------------------------------
 
 \end{multicols}
-
-%----------------------------------------------------------------------------------------
-%	EXAMPLE POSTER LAYOUT 2
-%----------------------------------------------------------------------------------------
-
-\newpage
-
-\titlesection % Output the title section, automatically populated using the information in the POSTER INFORMATION block above
-
-\begin{multicols}{3} % Start the three-column layout
-	
-	%----------------------------------------------------------------------------------------
-	%	FIRST COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\subsection{Subsection Title}
-	
-	Adi cum fugia qui dolo ommodit quia venisi saperat iscim qsequae nobissitat.
-	
-	Sed que perspic ipsanihit quunt aligenist re reperehendia \textcolor{ICLBlue}{apicias re pellectur sus, tentur?}
-		
-	\begin{quote}
-		"Pull Quote/Subtitle. Ut in gother comnihic totatem apietur, ium audi imus vent ipsum volup ta veniscil dolut acero del mint."
-	\end{quote}
-	
-	\begin{figure}[H] % [H] forces the figure to be output where it is defined in the code (it suppresses floating)
-		\includegraphics[width=\linewidth]{Grey_1-1.pdf} % Figure image
-		\caption{Figure caption. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor arcu luctus, imperdiet urna iaculis, mattis eros.}
-	\end{figure}
-	
-	\subsection{Subsection Title}
-	
-	Adi cum fugia qui dolo ommodit quia venisi saperat iscim qsequae nobissitat.
-	
-	Sed que perspic ipsanihit quunt aligenist re reperehendia apicias re pellectur sus, tentur? Ihit, tem quam lab imusdaeptas exerum fugia dis re?
-	
-	Ehendios dolores ni dolut acero del mint apid esto bernatendem eum atqui delisti opta aliquam il id quam fuguist, eum rerferesto.
-	
-	\begin{table}[H] % [H] forces the table to be output where it is defined in the code (it suppresses floating)
-		\caption{Experimental results.}
-		\begin{tabular}{L{0.26\linewidth} C{0.26\linewidth} R{0.26\linewidth}}
-			\toprule
-			Treatment & Quantity & Response\\
-			\midrule
-			AAA & 10mL & 0.944\\
-			AAA & 150mL & 0.527\\
-			BBB & 20mL & 0.263\\
-			BBB & 2,000mL & 0.818\\
-			\bottomrule
-		\end{tabular}
-	\end{table}
-	
-	\columnbreak % Switch to the next column
-	
-	%----------------------------------------------------------------------------------------
-	%	SECOND COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\section{Section Title}
-	
-	Equae es nobissitat hitatum estis quodit larib ustotatet etur aut exere estint eium ium expeb usantis sae maio omnis consed quam reici voluptam ipistio. Arum, se velliquosam, oms evelendici derroruptius debitis quunto
-	
-	\subsection{Subsection Title}
-	
-	Ehendios \textcolor{ICLBlue}{dolores} ni dolut acero del mint apid esto bernatendem eum \textcolor{ICLBlue}{atqui delisti opta} aliquam il id quam fuguist, eum rerferesto conserro berionectio. Alitatu saperat iscim qsequae.
-	
-	\vspace{0.017\textheight} % Manual vertical whitespace to align against the figure on the left
-	
-	\begin{figure}[H] % [H] forces the figure to be output where it is defined in the code (it suppresses floating)
-		\includegraphics[width=0.66\textwidth]{Grey_16-9.pdf} % Figure image
-		\parbox[b]{0.66\textwidth}{\caption{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor arcu luctus, imperdiet urna iaculis, mattis eros. Pellentesque iaculis odio vel nisl ullamcorper, nec faucibus ipsum molestie.}} % Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\end{figure}
-	
-	\largepercent{95\%} % Large bold percentage figure
-	
-	Equae es nobissitat hitatum estis quodit larib usantis sae maio omnis cam reici
-	
-	\boldsection{Arum alis dolum aut pe dolorestem cone vertis} % Output some bold text to stand out from the body text
-	
-	\begin{enumerate}
-		\item Lorem ipsum
-		\item Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-		\item Praesent porttitor.
-	\end{enumerate}
-	
-	\columnbreak % Switch to the next column
-	
-	%----------------------------------------------------------------------------------------
-	%	THIRD COLUMN
-	%----------------------------------------------------------------------------------------
-	
-	\section{Section Title}
-	
-	{
-		\small % Use \smalltext or an enclosed \small for a block of text in a reduced font size
-		Obisim qui quiae porum ea volorenis eic tem andae nus, verem expligento tecum eos quo magnihit inis sunt di dolupta tiuntem qui ipid moluptatquam idio. Itinturia vellam in none velit quat landi ium faci dolum volut as ea cus.
-
-		At ad qui venihillum renderi aeperib erciligendae non eossunto magniat.Enietur, ut volorit esedipit volorem et eium apiendae vel id endes dolo ex etur mos planit, non eos eosam, sentiis aut abo. Itatur alissiment quias nia soluptatur?
-
-		Am conet, ut occaerum ant eatibusdae sit, nus etur? Mincia cone verum qui dis nobitatur sequodi oriaepuda sim rempersperia nulluptatis culpario eicte illupta tenemperit isquamus natem et\par
-	}
-	
-	Equae es nobissitat hitatum estis quodit larib ustotatet \textcolor{ICLBlue}{etur aut exere estint eium ium expeb} usantis sae maio omnis consed quam reici voluptam ipistio.
-	
-	\vspace{0.31\textheight} % Vertical whitespace to push the content below to be below the figure, needs to be manually adjusted depending on the height of the figure
-	
-	Equae es nobissitat hitatum estis quodit larib ustotatet etur aut exere estint eium ium expeb usantis sae maio omnis consed quam reici voluptam ipistio. Ihit, tem quam lab imusdaeptas exerum fugia dis re, cus maximporerum quis aliquam et aut ra dolumqu iatetur? Quidus minit
-	
-	\subsection{Affiliations}
-	
-	% Affiliation institutions, the first parameter is the affiliation number (matching the author list) and the second is the institution
-	\affiliationentry{1}{Department Name, Imperial College London}\\
-	\affiliationentry{2}{University Name}\\
-	\affiliationentry{3}{Institute Name}
-	
-	\subsection{Funders}
-	
-	\includegraphics[width=0.55\linewidth]{UKRI_logo.png}\hfill\includegraphics[width=0.35\linewidth]{Grey_16-9.pdf} % Side by side funder logos
-	
-%----------------------------------------------------------------------------------------
-
-\end{multicols}
-
-%----------------------------------------------------------------------------------------
 
 \end{document}

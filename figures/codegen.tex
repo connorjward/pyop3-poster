@@ -1,0 +1,42 @@
+\documentclass[tikz]{standalone}
+\input{figures/common/preamble}
+
+\usepackage{minted}
+\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}
+
+\begin{document}
+\begin{tikzpicture}
+
+\tikzstyle {box} = [rectangle,draw=red,line width=3pt,rounded corners=10pt,inner sep=5pt];
+
+\node [box,text width=9.6cm,minimum height=1cm] at (0,0) {
+  \begin{minted}[bgcolor=white]{Python}
+loop(cell := mesh.cells.index(),
+        kernel(vec1[cell_to_vertex(cell)], vec2[cell]))
+  \end{minted}
+};
+
+\node [box,text width=8.5cm] at (.4,-5) {
+  \begin{minted}{c}
+void pyop3_kernel(array_0, array_1, array_2) {
+  double t_0[3];
+  double t_1[1];
+  for (int32_t i_0 = 0; i_0 < ncells; ++i_0) {
+    for (int32_t i_1 = 0; i_1 < 3; ++i_1)
+        t_0[i_1] = array_0[array_1[3 * i_0 + i_1]];
+    t_1[0] = 0.0;
+    kernel(&(t_0[0]), &(t_1[0]));
+    array_2[i_0] = array_2[i_0] + t_1[0];
+  }
+}
+  \end{minted}
+};
+
+\tkzSetUpStyle[-{Stealth},line width=3pt]{connector}
+\draw [connector] (0,-1) to node[midway,right,align=center,font=\sffamily,xshift=.3cm] {\textbf{CODE GENERATION}} (0,-2.5);
+
+\node [fill=none,font=\sffamily] at (3.8,.5) {\textbf{PYTHON}};
+\node [fill=none,font=\sffamily] at (4.3,-7) {\textbf{C}};
+
+\end{tikzpicture}
+\end{document}
