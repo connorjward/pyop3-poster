@@ -55,9 +55,16 @@
 
 \usepackage{subcaption} % subfigures
 
+\usepackage{cleveref}
+
+% https://tex.stackexchange.com/questions/17360/reduce-spacing-in-bibliography-using-biblatex
+\usepackage{setspace}
+
 % hacky way to get \pyop2 and \pyop3 as valid macros
 % source: https://tex.stackexchange.com/questions/13290/how-to-define-macros-with-numbers-in-them
 \def\pyop#1{\ifnum#1=2 {PyOP2}\else \ifnum#1=3 {\texttt{pyop3}}\fi \fi}
+
+\newcommand{\myblue}[1]{\textcolor{ICLBlue}{#1}}
 
 %----------------------------------------------------------------------------------------
 %	POSTER INFORMATION
@@ -109,60 +116,42 @@
 %	FIRST COLUMN
 %----------------------------------------------------------------------------------------
 
+\vspace{-1em}
 \section{1. Motivation}
 
-* Numerically solving PDEs over unstructured meshes requires one to loop over mesh
-  entities and perform "local" computations in regions.
-* For example, in the finite element method, ...
+The execution of compact computational kernels, where one loops over a mesh and performs some ``local" calculation for each mesh entity, is ubiquitous in continuum mechanics simulations.
+To give an example, in the finite element method one assembles the linear systems to be solved by looping over the cells of the mesh, evaluating an integral calculation using local DoFs, and then adding the result to a global matrix or vector.
 
-* The variables in the system of equations (the DoFs) are associated with the different
-  mesh entities. So when doing these loops one needs to express both the iteration
-  regime (?) as well as the indirections from cells (e.g.) to supported DoFs.
+As a one-off, this ``outer loop" is very straightforward to write by hand.
+However, there is a plethora of design choices (PDE, discretisation, offload device, etc) and possible optimisations (vectorisation, tiling, data layout transformations, etc) that mean that this loop would need to be rewritten time and time again.
+This handwritten approach both hampers programmer productivity and inhibits the development of higher level abstractions (e.g.~\cite{alnaesUnifiedFormLanguage2014a}).
+\textcolor{ICLBlue}{Therefore, a software abstraction that captures the semantics and automates the construction of ``outer loops" is needed.}
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.4\textwidth]{fem_assembly.pdf}
-	\parbox{0.49\textwidth}{
-		\caption{
-			The assembly process for the finite element method.
-			DoFs local to a cell are collected in a small array which is then used to perform the cell-wise computation with the result being scattered back to a global vector or matrix.
-		}
-		\label{fig:fem_assembly}
-	}
-\end{figure}
+\vspace{-1em}
 
-% NOTE: uncomment
-% * Whilst appearing initially simple to write by hand, this operation has number of
-%   subtleties (itemize):
-%   * Different systems of equations require different bits of packing code, changing
-%     discretisation etc requires a rewrite.
-%   * Parallel scheduling and data validity (shared+distributed memory)
-%   * vectorisation
-%   * target different backends/languages (e.g. CUDA, C, HIP)
-%   * data layout assumptions "baked in" (e.g. adaptivity is hard, AoS/SoA)
+\section{2. Introducing \pyop3}
 
-\begin{center}
-	\begin{quote}
-		\textcolor{ICLBlue}{"With great composability comes\\ great (expressive) power"}
-	\end{quote}
-\end{center}
-
-% NOTE: uncomment
-% * This combinatorial complexity means that one must either write individual kernels
-%   by hand, or provide an abstraction that captures the full semantics.
-% * Code generation allows us to generate near-equivalent code that would be handwritten.
-%   * Library interfaces inevitably sacrifice performance or expressiveness or maintainability
-
-A number of libraries exist that already provide this abstraction.
-However they all suffer from either:
-(1) having a custom mesh abstraction, and hence being unable to use mature existing packages (e.g.~\cite{kjolstadSimitLanguagePhysical2016}), or
-(2) having no concept of a mesh altogether, which hinders composability (e.g.~\cite{rathgeberPyOP2HighLevelFramework2012}).
+To this end, we have written a new library for automating the construction and execution of these loops: \pyop3.
+Given some user-provided data structures and a \myblue{loop expression} containing the application of some local kernel, \pyop3 uses \myblue{code generation} to produce low-level code that is near equivalent to something handwritten (\cref{fig:codegen}).
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.4\textwidth]{codegen.pdf}
+	\includegraphics[width=.35\textwidth]{codegen.pdf}
+	\caption{Simplified example of the code generated from a \pyop3 loop expression.}
 	\label{fig:codegen}
 \end{figure}
+
+\pyop3 is similar in many respects to its precursor, \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and work to replace \pyop2 with \pyop3 in the finite element framework Firedrake~\cite{FiredrakeUserManual} is ongoing.
+
+\subsection{References}
+
+\vspace{1em}
+
+\begingroup
+\setstretch{0.8}
+\setlength\bibitemsep{0pt}
+\printbibliography[heading=none]
+\endgroup
 
 \columnbreak
 
@@ -170,44 +159,32 @@ However they all suffer from either:
 %	SECOND COLUMN
 %----------------------------------------------------------------------------------------
 
-\section{2. Introducing \pyop3}
-
-To bridge this divide, we introduce \pyop3, a new abstraction for applying local computations to a mesh.
-The design of \pyop3 is inspired by its precursor, \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and PETSc~\cite{petsc-user-ref}, a popular PDE toolkit.
-Powered by a novel abstraction for representing mesh data, \pyop3 can \textcolor{ICLBlue}{generate efficient code} in just a handful of lines of Python code (Figure~\ref{fig:codegen}).
-
-\section{3. A new abstraction for mesh data}
-
-To reconcile the need for composability with the need to be able to generate low-level code, \pyop3 introduces a new abstraction for representing mesh data.
-From the reference elements in Figure~\ref{fig:sv_element} and the data layout in Figure~\ref{fig:dof_layout} it is clear that
-(a) there is some structure present, and
-(b) this structure is not sufficiently uniform to be represented as an N-dimensional array.
-\textcolor{ICLBlue}{\pyop3 generalises N-dimensional arrays to mesh data structures by representing them as trees.}
-
 \begin{figure}[H]
 	\centering
 	\hfill
 	\begin{subfigure}{.16\textwidth}
 		\centering
-		\includegraphics[width=.8\textwidth]{ref_triangle.pdf}
+		\includegraphics[width=.7\textwidth]{ref_triangle.pdf}
 	\end{subfigure}
 	\begin{subfigure}{.16\textwidth}
 		\centering
-		\includegraphics[width=.8\textwidth]{lagrange_element_3_vec.pdf}
+		\includegraphics[width=.7\textwidth]{lagrange_element_3_vec.pdf}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{.16\textwidth}
 		\centering
-		\includegraphics[width=.8\textwidth]{lagrange_element_2_dg.pdf}
+		\includegraphics[width=.7\textwidth]{lagrange_element_2_dg.pdf}
 	\end{subfigure}
 	\hfill
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\parbox{0.49\textwidth}{\caption{
-		The Scott-Vogelius finite element pair (middle and right) for the reference triangle (left).
-		DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
-		The lower-order element (right) is discontinuous, so all the DoFs are considered to belong to the cell.
+	\parbox{0.49\textwidth}{
+		\caption{
+			An example of a mixed finite element (Scott-Vogelius, middle and right) on a reference triangle (left).
+			DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
+			The lower-order element (right) is discontinuous, so all the DoFs are considered to belong to the cell.
+		}
 		\label{fig:sv_element}
-	}}
+	}
 \end{figure}
 
 \begin{figure}[H]
@@ -215,21 +192,54 @@ From the reference elements in Figure~\ref{fig:sv_element} and the data layout i
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
 	\parbox{0.49\textwidth}{
 		\caption{
-			A possible data layout for the DoFs of a one-cell mesh for the finite element pair in Figure~\ref{fig:sv_element}.
+			A possible data layout for the DoFs of a one-cell mesh for the finite element pair in \cref{fig:sv_element}.
 			The labels $V_h$ and $Q_h$ represent the function spaces of the two elements.
 		}
 		\label{fig:dof_layout}
 	}
 \end{figure}
 
+\vspace{-1em}
+
+\section{3. A new abstraction for mesh data}
+
+The most significant difference between \pyop2 and \pyop3 is the development of a new abstraction for describing data layouts.
+Mesh data has a complicated structure (\cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts (e.g. N-dimensional arrays).
+Whilst \pyop2 handles this structure by throwing away information, \pyop3 is capable of fully describing complex mesh data layouts using \myblue{axis trees} (\cref{fig:axis_tree}).
+Having a richer abstraction for data layouts makes composition easier and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
+
+\begin{figure}[H]
+	\includegraphics[width=0.49\textwidth]{axis_tree.pdf}
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{0.49\textwidth}{
+		\caption{
+			An axis tree that describes the data layout shown in \cref{fig:dof_layout}.
+		}
+		\label{fig:axis_tree}
+	}
+\end{figure}
+
+\vspace{-1em}
+
 \section{4. Future work}
 
-% GPUs, slope limiters, adaptivity, orientations?, ASM
+Once \pyop3 has been fully integrated into Firedrake, there is scope for a variety of performance improvements and avenues of research to pursue.
+Possible low-level changes include:
 
-% TODO: narrow
-\subsection{References}
+\begin{itemize}
+	\item GPU support (high priority)
+	\item Data layout transformations
+	\item Loop tiling
+\end{itemize}
 
-\printbibliography[heading=none]
+Whilst at a high level the following should also become expressible:
+
+\begin{itemize}
+	\item Physics-based preconditioners
+	\item Slope limiters
+	\item Adaptivity
+	\item Particle methods
+\end{itemize}
 
 %----------------------------------------------------------------------------------------
 

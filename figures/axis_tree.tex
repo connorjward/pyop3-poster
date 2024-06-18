@@ -1,0 +1,69 @@
+\documentclass[tikz]{standalone}
+\input{figures/common/preamble}
+
+\begin{document}
+\begin{tikzpicture}[remember picture,yscale=.7]
+
+\input{figures/common/tree.tikz}
+
+% Scott-Vogelius element
+\drawTreeNode{(field)}{(5,6)}{
+  Spaces: \{ \component{field0}{$V_h$: 1}, \component{field1}{$Q_h$: 1} \}
+};
+
+\drawTreeNode{(mesh0)}{(0,4)}{
+  Mesh: \{ \component{mesh00}{\textit{vertex}: 3}, \component{mesh01}{\textit{edge}: 3}, \component{mesh02}{\textit{cell}: 1} \}
+};
+\drawTreeNode{(vertdof0)}{(-.2,2)}{Nodes: \{ \component{vdof0}{1} \}};
+\drawTreeNode{(edgedof0)}{(2.2,2)}{Nodes: \{ \component{edof0}{2} \}};
+\drawTreeNode{(celldof0)}{(4.6,2)}{Nodes: \{ \component{cdof0}{1} \}};
+\drawTreeNode{(vertdim0)}{(-.8,0)}{DoFs: \{ 2 \}};
+\drawTreeNode{(edgedim0)}{(2,0)}{DoFs: \{ 2 \}};
+\drawTreeNode{(celldim0)}{(4.8,0)}{DoFs: \{ 2 \}};
+
+\drawTreeNode{(mesh1)}{(7,4)}{
+  Mesh: \{ \component{mesh10}{\textit{vertex}: 3}, \component{mesh11}{\textit{edge}: 3}, \component{mesh12}{\textit{cell}: 1} \}
+};
+\drawTreeNode{(vertdof1)}{(7.5, 2)}{Nodes: \{ \component{vdof1}{0} \}};
+\drawTreeNode{(edgedof1)}{(9.9, 2)}{Nodes: \{ \component{edof1}{0} \}};
+\drawTreeNode{(celldof1)}{(12.3, 2)}{Nodes: \{ \component{cdof1}{6} \}};
+\drawTreeNode{(vertdim1)}{(8,0)}{DoFs: \{ 1 \}};
+\drawTreeNode{(edgedim1)}{(10.4,0)}{DoFs: \{ 1 \}};
+\drawTreeNode{(celldim1)}{(12.8,0)}{DoFs: \{ 1 \}};
+
+\underlineComponent{field}{field0};
+\underlineComponent{field}{field1};
+\drawTreeConnector{field}{field0}{(mesh0)};
+\drawTreeConnector{field}{field1}{(mesh1)};
+
+\underlineComponent{mesh0}{mesh00};
+\underlineComponent{mesh0}{mesh01};
+\underlineComponent{mesh0}{mesh02};
+\drawTreeConnector{mesh0}{mesh00}{(vertdof0)};
+\drawTreeConnector{mesh0}{mesh01}{(edgedof0)};
+\drawTreeConnector{mesh0}{mesh02}{(celldof0)};
+
+\underlineComponentNarrow{celldof0}{cdof0};
+\underlineComponentNarrow{vertdof0}{vdof0};
+\underlineComponentNarrow{edgedof0}{edof0};
+\drawTreeConnector{celldof0}{cdof0}{(celldim0)};
+\drawTreeConnector{vertdof0}{vdof0}{(vertdim0)};
+\drawTreeConnector{edgedof0}{edof0}{(edgedim0)};
+
+\underlineComponent{mesh1}{mesh10};
+\underlineComponent{mesh1}{mesh11};
+\underlineComponent{mesh1}{mesh12};
+\drawTreeConnector{mesh1}{mesh10}{(vertdof1)};
+\drawTreeConnector{mesh1}{mesh11}{(edgedof1)};
+\drawTreeConnector{mesh1}{mesh12}{(celldof1)};
+
+\underlineComponentNarrow{celldof1}{cdof1};
+\underlineComponentNarrow{vertdof1}{vdof1};
+\underlineComponentNarrow{edgedof1}{edof1};
+\drawTreeConnector{celldof1}{cdof1}{(celldim1)};
+\drawTreeConnector{vertdof1}{vdof1}{(vertdim1)};
+\drawTreeConnector{edgedof1}{edof1}{(edgedim1)};
+
+\end{tikzpicture}
+
+\end{document}
