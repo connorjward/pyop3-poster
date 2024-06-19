@@ -56,6 +56,7 @@
 \usepackage{subcaption} % subfigures
 
 \usepackage{cleveref}
+\usepackage{tikz}
 
 % https://tex.stackexchange.com/questions/17360/reduce-spacing-in-bibliography-using-biblatex
 \usepackage{setspace}
@@ -78,9 +79,9 @@
 
 % Command to output coauthor logos to the right of the Imperial logo in the header of the poster
 % If no coauthor logos are required, remove or comment out this command
-\coauthorlogos{
-	\coauthorlogo[3.5cm]{firedrake.png}
-}
+% \coauthorlogos{
+% 	\coauthorlogo[3.5cm]{firedrake.png}
+% }
 
 %----------------------------------------------------------------------------------------
 %	ABSTRACT
@@ -118,30 +119,50 @@
 
 \vspace{-1em}
 \section{1. Motivation}
+\vspace{-.8em}
 
-The execution of compact computational kernels, where one loops over a mesh and performs some ``local" calculation for each mesh entity, is ubiquitous in continuum mechanics simulations.
-To give an example, in the finite element method one assembles the linear systems to be solved by looping over the cells of the mesh, evaluating an integral calculation using local DoFs, and then adding the result to a global matrix or vector.
-
-As a one-off, this ``outer loop" is very straightforward to write by hand.
-However, there is a plethora of design choices (PDE, discretisation, offload device, etc) and possible optimisations (vectorisation, tiling, data layout transformations, etc) that mean that this loop would need to be rewritten time and time again.
-This handwritten approach both hampers programmer productivity and inhibits the development of higher level abstractions (e.g.~\cite{alnaesUnifiedFormLanguage2014a}).
-\textcolor{ICLBlue}{Therefore, a software abstraction that captures the semantics and automates the construction of ``outer loops" is needed.}
-
-\vspace{-1em}
-
-\section{2. Introducing \pyop3}
-
-To this end, we have written a new library for automating the construction and execution of these loops: \pyop3.
-Given some user-provided data structures and a \myblue{loop expression} containing the application of some local kernel, \pyop3 uses \myblue{code generation} to produce low-level code that is near equivalent to something handwritten (\cref{fig:codegen}).
+\begin{itemize}
+	\item
+		The application of compact computational kernels across a mesh (e.g. \cref{fig:fem_assembly}) crops up all the time in continuum mechanics simulations.
+	\item
+		Writing this traversal code by hand quickly becomes difficult due to the need to support different PDEs, discretisations, hardware, etc.
+	\item
+		\myblue{Therefore, a software abstraction that can automate the construction of the traversal code is needed.}
+\end{itemize}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.35\textwidth]{codegen.pdf}
+	\includegraphics[width=.35\textwidth]{fem_assembly.pdf}
+	\parbox{0.49\textwidth}{
+		\caption{A classic example of applying a compact kernel to a mesh: finite element assembly of a matrix.}
+		\label{fig:fem_assembly}
+	}
+\end{figure}
+
+% As a one-off, this ``outer loop" is very straightforward to write by hand.
+% However, there is a plethora of design choices (PDE, discretisation, offload device, etc) and possible optimisations (vectorisation, tiling, data layout transformations, etc) that mean that this loop would need to be rewritten time and time again.
+% This handwritten approach both hampers programmer productivity and inhibits the development of higher level abstractions (e.g.~\cite{alnaesUnifiedFormLanguage2014a}).
+% \textcolor{ICLBlue}{Therefore, a software abstraction that captures the semantics and automates the construction of ``outer loops" is needed.}
+
+\vspace{-1em}
+\section{2. Introducing \pyop3}
+\vspace{-.8em}
+
+\begin{itemize}
+	\item
+		\pyop3 is a new \myblue{domain-specific language} for automating calculations involving mesh traversal.
+	\item
+		It uses \myblue{code generation} (e.g. \cref{fig:codegen}) to outperform equivalent library interfaces.
+	\item
+		It is based on \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and work is in progress to replace \pyop2 with \pyop3 in the Firedrake finite element framework~\cite{FiredrakeUserManual}.
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.3\textwidth]{codegen.pdf}
 	\caption{Simplified example of the code generated from a \pyop3 loop expression.}
 	\label{fig:codegen}
 \end{figure}
-
-\pyop3 is similar in many respects to its precursor, \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and work to replace \pyop2 with \pyop3 in the finite element framework Firedrake~\cite{FiredrakeUserManual} is ongoing.
 
 \subsection{References}
 
@@ -158,6 +179,19 @@ Given some user-provided data structures and a \myblue{loop expression} containi
 %----------------------------------------------------------------------------------------
 %	SECOND COLUMN
 %----------------------------------------------------------------------------------------
+
+\vspace{-1em}
+\section{3. A new abstraction for mesh data}
+\vspace{-.8em}
+
+\begin{itemize}
+	\item
+		Mesh data has a complicated structure (\cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts (e.g. N-dimensional arrays).
+	\item
+		Unlike \pyop2, \pyop3 is capable of fully describing complex mesh data layouts using \myblue{axis trees} (\cref{fig:axis_tree}).
+	\item
+		Having a richer abstraction for data layouts makes composition easier, and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
+\end{itemize}
 
 \begin{figure}[H]
 	\centering
@@ -192,21 +226,13 @@ Given some user-provided data structures and a \myblue{loop expression} containi
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
 	\parbox{0.49\textwidth}{
 		\caption{
-			A possible data layout for the DoFs of a one-cell mesh for the finite element pair in \cref{fig:sv_element}.
+			Different views of a possible data layout for a one-cell mesh of the mixed finite element (\cref{fig:sv_element}).
 			The labels $V_h$ and $Q_h$ represent the function spaces of the two elements.
 		}
 		\label{fig:dof_layout}
 	}
 \end{figure}
 
-\vspace{-1em}
-
-\section{3. A new abstraction for mesh data}
-
-The most significant difference between \pyop2 and \pyop3 is the development of a new abstraction for describing data layouts.
-Mesh data has a complicated structure (\cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts (e.g. N-dimensional arrays).
-Whilst \pyop2 handles this structure by throwing away information, \pyop3 is capable of fully describing complex mesh data layouts using \myblue{axis trees} (\cref{fig:axis_tree}).
-Having a richer abstraction for data layouts makes composition easier and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
 
 \begin{figure}[H]
 	\includegraphics[width=0.49\textwidth]{axis_tree.pdf}
@@ -220,26 +246,36 @@ Having a richer abstraction for data layouts makes composition easier and thus \
 \end{figure}
 
 \vspace{-1em}
-
 \section{4. Future work}
+\vspace{-.8em}
 
 Once \pyop3 has been fully integrated into Firedrake, there is scope for a variety of performance improvements and avenues of research to pursue.
 Possible low-level changes include:
 
+\vspace{-.8em}
 \begin{itemize}
 	\item GPU support (high priority)
 	\item Data layout transformations
 	\item Loop tiling
 \end{itemize}
 
+\vspace{-.8em}
 Whilst at a high level the following should also become expressible:
 
+\vspace{-.8em}
 \begin{itemize}
 	\item Physics-based preconditioners
 	\item Slope limiters
 	\item Adaptivity
 	\item Particle methods
+	\item \myblue{And more!}
 \end{itemize}
+
+% Firedrake in the bottom right
+\begin{tikzpicture}[remember picture, overlay]
+  \node [anchor=south east,inner sep=0pt,xshift=-5cm,yshift=6cm]  at (current page.south east)
+     {\includegraphics[height=5cm]{firedrake.png}};
+\end{tikzpicture}
 
 %----------------------------------------------------------------------------------------
 
