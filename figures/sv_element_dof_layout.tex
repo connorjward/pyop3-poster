@@ -2,7 +2,10 @@
 \input{figures/common/preamble}
 
 \begin{document}
-\begin{tikzpicture}[xscale=.6,yscale=-.65]
+
+% \renewcommand{\familydefault}{\sfdefault}
+
+\begin{tikzpicture}[xscale=.6,yscale=-.65,font=\sffamily]
 
 \input{figures/common/data_layout.tikz}
 
@@ -19,8 +22,8 @@
 \drawBoxNew{(0,2)}{(20,3)}{white}
 \drawBoxNew{(20,2)}{(26,3)}{white}
 \drawGuideLines{2}
-\labelBox{(10,2.5)}{$V_h$}{white}
-\labelBox{(23,2.5)}{$Q_h$}{white}
+\labelBox{(10,2.5)}{$[P_3]^2$}{white}
+\labelBox{(23,2.5)}{$P_2^\mathrm{disc}$}{white}
 
 % points
 \drawBoxNew{(0,4)}{(2,5)}{bgvertdofcolor}

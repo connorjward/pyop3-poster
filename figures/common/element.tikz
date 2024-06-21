@@ -17,7 +17,7 @@
 }
 
 \newcommand{\drawFilledDof}[3]{%
-  \filldraw [fill=#3] (#1) node [doftext] {#2} circle [radius=7pt];
+  \filldraw [fill=#3] (#1) node [font=\sffamily] {\textbf{#2}} circle [radius=7pt];
 }
 
 \newcommand{\drawFilledVertex}[2]{%

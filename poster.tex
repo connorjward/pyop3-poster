@@ -123,26 +123,21 @@
 
 \begin{itemize}
 	\item
-		The application of compact computational kernels across a mesh (e.g. \cref{fig:fem_assembly}) crops up all the time in continuum mechanics simulations.
+		The application of compact computational kernels across a mesh (\cref{fig:fem_assembly}) crops up all the time in continuum mechanics simulations.
 	\item
 		Writing this traversal code by hand quickly becomes difficult due to the need to support different PDEs, discretisations, hardware, etc.
 	\item
-		\myblue{Therefore, a software abstraction that can automate the construction of the traversal code is needed.}
+		\myblue{A software abstraction that can automate the construction of the traversal code is needed.}
 \end{itemize}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.35\textwidth]{fem_assembly.pdf}
 	\parbox{0.49\textwidth}{
-		\caption{A classic example of applying a compact kernel to a mesh: finite element assembly of a matrix.}
+		\caption{An example of applying a compact kernel to a mesh: finite element assembly of a matrix.}
 		\label{fig:fem_assembly}
 	}
 \end{figure}
-
-% As a one-off, this ``outer loop" is very straightforward to write by hand.
-% However, there is a plethora of design choices (PDE, discretisation, offload device, etc) and possible optimisations (vectorisation, tiling, data layout transformations, etc) that mean that this loop would need to be rewritten time and time again.
-% This handwritten approach both hampers programmer productivity and inhibits the development of higher level abstractions (e.g.~\cite{alnaesUnifiedFormLanguage2014a}).
-% \textcolor{ICLBlue}{Therefore, a software abstraction that captures the semantics and automates the construction of ``outer loops" is needed.}
 
 \vspace{-1em}
 \section{2. Introducing \pyop3}
@@ -152,7 +147,7 @@
 	\item
 		\pyop3 is a new \myblue{domain-specific language} for automating calculations involving mesh traversal.
 	\item
-		It uses \myblue{code generation} (e.g. \cref{fig:codegen}) to outperform equivalent library interfaces.
+		It uses \myblue{code generation} (\cref{fig:codegen}) to outperform equivalent library interfaces.
 	\item
 		It is based on \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and work is in progress to replace \pyop2 with \pyop3 in the Firedrake finite element framework~\cite{FiredrakeUserManual}.
 \end{itemize}
@@ -186,7 +181,7 @@
 
 \begin{itemize}
 	\item
-		Mesh data has a complicated structure (\cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts (e.g. N-dimensional arrays).
+		Mesh data has a complicated structure (\cref{fig:sv_element}, \cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts, like N-dimensional arrays.
 	\item
 		Unlike \pyop2, \pyop3 is capable of fully describing complex mesh data layouts using \myblue{axis trees} (\cref{fig:axis_tree}).
 	\item
@@ -213,9 +208,9 @@
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
 	\parbox{0.49\textwidth}{
 		\caption{
-			An example of a mixed finite element (Scott-Vogelius, middle and right) on a reference triangle (left).
+			The Scott-Vogelius finite element pair $[P_3]^2 \oplus P_2^\mathrm{disc}$ (middle and right) on a reference triangle (left).
 			DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
-			The lower-order element (right) is discontinuous, so all the DoFs are considered to belong to the cell.
+			$P_2^\mathrm{disc}$ (right) is discontinuous, so all the DoFs are considered to belong to the cell.
 		}
 		\label{fig:sv_element}
 	}
@@ -226,8 +221,7 @@
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
 	\parbox{0.49\textwidth}{
 		\caption{
-			Different views of a possible data layout for a one-cell mesh of the mixed finite element (\cref{fig:sv_element}).
-			The labels $V_h$ and $Q_h$ represent the function spaces of the two elements.
+			Different views of a possible data layout for a one-cell mesh of the finite element pair in \cref{fig:sv_element}.
 		}
 		\label{fig:dof_layout}
 	}
@@ -249,7 +243,7 @@
 \section{4. Future work}
 \vspace{-.8em}
 
-Once \pyop3 has been fully integrated into Firedrake, there is scope for a variety of performance improvements and avenues of research to pursue.
+Once \pyop3 has been fully integrated into Firedrake there is scope for a variety of performance improvements and avenues of research to pursue.
 Possible low-level changes include:
 
 \vspace{-.8em}

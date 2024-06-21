@@ -7,7 +7,7 @@
 \begin{document}
 \begin{tikzpicture}
 
-\tikzstyle {box} = [rectangle,draw=red,line width=3pt,rounded corners=10pt,inner sep=5pt];
+\tikzstyle {box} = [rectangle,draw=red,line width=2pt,rounded corners=10pt,inner sep=5pt];
 
 \node [box,text width=9.6cm,minimum height=1cm] at (0,0) {
   \begin{minted}[bgcolor=white]{Python}
@@ -16,7 +16,7 @@ loop(cell := mesh.cells.index(),
   \end{minted}
 };
 
-\node [box,text width=8.5cm] at (.4,-5) {
+\node [box,text width=9cm,minimum height=5.3cm] at (1,-5) {
   \begin{minted}{c}
 void pyop3_kernel(array_0, array_1, array_2) {
   double t_0[3];
@@ -33,10 +33,11 @@ void pyop3_kernel(array_0, array_1, array_2) {
 };
 
 \tkzSetUpStyle[-{Stealth},line width=3pt]{connector}
-\draw [connector] (0,-1) to node[midway,right,align=center,font=\sffamily,xshift=.3cm] {\textbf{CODE GENERATION}} (0,-2.5);
+\draw [connector] (0,-1) to node[midway,left,align=center,font=\sffamily,xshift=-.2cm] {\textbf{CODE GENERATION}} (0,-2.3);
 
-\node [fill=none,font=\sffamily] at (3.8,.5) {\textbf{PYTHON}};
-\node [fill=none,font=\sffamily] at (4.3,-7) {\textbf{C}};
+\tikzstyle {label} = [fill=white,draw=red,line width=2pt,font=\sffamily,rounded corners=5pt,minimum width=.8cm];
+\node [label] at (3.7,.95) {\textbf{PYTHON}};
+\node [label] at (4.8,-2.35) {\textbf{C}};
 
 \end{tikzpicture}
 \end{document}

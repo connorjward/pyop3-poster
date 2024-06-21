@@ -119,14 +119,14 @@
 % Both {\small <text>\par} and \smalltext{<text>} will have the same effect in the template, with the latter being easier to use and the former being a standard LaTeX command
 \renewcommand{\small}{%
 	\iftoggle{a1papersize}{%
-		\setlength{\parskip}{20pt}\fontsize{16pt}{20pt}\selectfont% A1 paper size font size
+		\setlength{\parskip}{20pt}\fontsize{20pt}{24pt}\selectfont% A1 paper size font size
 	}{%
 		\setlength{\parskip}{30pt}\fontsize{24pt}{30pt}\selectfont% A0 paper size font size
 	}%
 }
 \newcommand{\smalltext}[1]{{%
 	\iftoggle{a1papersize}{%
-		\setlength{\parskip}{20pt}\fontsize{16pt}{20pt}\selectfont% A1 paper size font size
+		\setlength{\parskip}{20pt}\fontsize{20pt}{24pt}\selectfont% A1 paper size font size
 	}{%
 		\setlength{\parskip}{30pt}\fontsize{24pt}{30pt}\selectfont}% A0 paper size font size
 	#1\par% The text itself followed by a \par for correct line spacing
@@ -236,7 +236,7 @@
 
 \usepackage{caption} % Required for customizing captions
 
-\DeclareCaptionFormat{anyfontsize}{\iftoggle{a1papersize}{\fontsize{14pt}{17.5pt}\selectfont}{\fontsize{14pt}{17.5pt}\selectfont}#1#2#3} % Font size of captions in a new caption style
+\DeclareCaptionFormat{anyfontsize}{\iftoggle{a1papersize}{\fontsize{20pt}{24pt}\selectfont}{\fontsize{18pt}{22pt}\selectfont}#1#2#3} % Font size of captions in a new caption style
 \captionsetup{format=anyfontsize, labelfont=bf} % Activate the custom caption style and style labels
 \captionsetup{justification=justified, singlelinecheck=false} % Left-align captions
 

@@ -2,17 +2,17 @@
 \input{figures/common/preamble}
 
 \begin{document}
-\begin{tikzpicture}[remember picture,yscale=.7]
+\begin{tikzpicture}[remember picture,yscale=.7,font=\sffamily]
 
 \input{figures/common/tree.tikz}
 
 % Scott-Vogelius element
 \drawTreeNode{(field)}{(5,6)}{
-  Spaces: \{ \component{field0}{$V_h$: 1}, \component{field1}{$Q_h$: 1} \}
+  Spaces: \{ \component{field0}{$[P_3]^2$: 1}, \component{field1}{$P_2^\mathrm{disc}$: 1} \}
 };
 
 \drawTreeNode{(mesh0)}{(0,4)}{
-  Mesh: \{ \component{mesh00}{\textit{vertex}: 3}, \component{mesh01}{\textit{edge}: 3}, \component{mesh02}{\textit{cell}: 1} \}
+  Mesh: \{ \component{mesh00}{vertex: 3}, \component{mesh01}{edge: 3}, \component{mesh02}{cell: 1} \}
 };
 \drawTreeNode{(vertdof0)}{(-.2,2)}{Nodes: \{ \component{vdof0}{1} \}};
 \drawTreeNode{(edgedof0)}{(2.2,2)}{Nodes: \{ \component{edof0}{2} \}};
@@ -22,7 +22,7 @@
 \drawTreeNode{(celldim0)}{(4.8,0)}{DoFs: \{ 2 \}};
 
 \drawTreeNode{(mesh1)}{(7,4)}{
-  Mesh: \{ \component{mesh10}{\textit{vertex}: 3}, \component{mesh11}{\textit{edge}: 3}, \component{mesh12}{\textit{cell}: 1} \}
+  Mesh: \{ \component{mesh10}{vertex: 3}, \component{mesh11}{edge: 3}, \component{mesh12}{cell: 1} \}
 };
 \drawTreeNode{(vertdof1)}{(7.5, 2)}{Nodes: \{ \component{vdof1}{0} \}};
 \drawTreeNode{(edgedof1)}{(9.9, 2)}{Nodes: \{ \component{edof1}{0} \}};
