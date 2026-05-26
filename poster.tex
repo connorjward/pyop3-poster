@@ -58,6 +58,8 @@
 \usepackage{cleveref}
 \usepackage{tikz}
 
+\usepackage{minted}
+
 % https://tex.stackexchange.com/questions/17360/reduce-spacing-in-bibliography-using-biblatex
 \usepackage{setspace}
 
@@ -101,22 +103,33 @@
 %----------------------------------------------------------------------------------------
 
 \vspace{-1em}
-\section{FEM data $\neq$ ND-arrays}
+\section{Mesh data $\neq$ ND arrays}
 \vspace{-.8em}
 
-\begin{itemize}
+N-dimensional (ND) arrays are the backbone of many areas of computational science. In particular they underpin machine learning frameworks such as PyTorch and JAX.
+
+Their popularity as an abstraction is due to two factors:
+\vspace{-1em}
+\begin{enumerate}
 	\item
-		N-dimensional (ND) arrays are the backbone of many areas of computational science. In particular they underpin the entire field of machine learning.
+		It is a very natural programming model for many domains.
 	\item
-		Why are they good? Nice abstraction, good to program with..., can optimise
+		Tensor operations may be compiled to extremely high performance code.
+\end{enumerate}
+
+Unfortunately, ND arrays are not a suitable fit for calculations that involve unstructured meshes:
+\vspace{-1em}
+\begin{enumerate}
 	\item
-		Data structures for the finite element method (FEM) do not conveniently fit into this paradigm.
-		unstructured mesh... different topological entities... parallel..
+		Mesh data can be associated with different topological entities (e.g. cells and/or vertices, \cref{fig:sv_element}).
+		This results in 'ragged' dimensions in the data structure (\cref{fig:dof_layout}) that cannot be represented using typical ND arrays.
 	\item
-		This prohibits the sort of development that we see in ML...
-	\item
-		\myblue{pyop3 is this missing abstraction...}
-\end{itemize}
+		Mesh data are distributed in parallel and have complicated processes for ensuring global correctness.
+\end{enumerate}
+
+\myblue{\pyop3 is this missing abstraction.}
+It is a library that provides a \myblue{numpy-like interface for unstructured mesh data} that is compiled to fast code.
+Just like PyTorch and JAX, \pyop3 will allow users to easily develop complex and performant numerical methods by composing operations at a convenient level of abstraction.
 
 \begin{figure}[H]
 	\centering
@@ -152,67 +165,23 @@
 	\parbox{\columnwidth}{
 		\caption{
 			The data layout structure for a one-cell mesh of the finite element pair in \cref{fig:sv_element}.
-			It is not possible to capture all of this detail using an ND-array.
+			It is not possible to capture all of this detail using an ND array.
 		}
 		\label{fig:dof_layout}
 	}
 \end{figure}
 
-\section{Core concepts in \pyop3}
-
-\section{The \pyop3 language}
-
-\vspace{-1em}
-\section{1. Motivation}
-\vspace{-.8em}
-
-\begin{itemize}
-	\item
-		The application of compact computational kernels across a mesh (\cref{fig:fem_assembly}) crops up all the time in continuum mechanics simulations.
-	\item
-		Writing this traversal code by hand quickly becomes difficult due to the need to support different PDEs, discretisations, hardware, etc.
-	\item
-		\myblue{A software abstraction that can automate the construction of the traversal code is needed.}
-\end{itemize}
-
 \begin{figure}[H]
-	\centering
-	\includegraphics[width=.35\textwidth]{fem_assembly.pdf}
-	\parbox{0.49\textwidth}{
-		\caption{An example of applying a compact kernel to a mesh: finite element assembly of a matrix.}
-		\label{fig:fem_assembly}
+	\includegraphics[width=\columnwidth]{axis_tree.pdf}
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{\columnwidth}{
+		\caption{
+			Graphical representation of an axis tree that describes the data layout shown in \cref{fig:dof_layout}.
+			Unlike ND arrays, all information is captured by the abstraction.
+		}
+		\label{fig:axis_tree}
 	}
 \end{figure}
-
-\vspace{-1em}
-\section{2. Introducing \pyop3}
-\vspace{-.8em}
-
-\begin{itemize}
-	\item
-		\pyop3 is a new \myblue{domain-specific language} for automating calculations involving mesh traversal.
-	\item
-		It uses \myblue{code generation} (\cref{fig:codegen}) to outperform equivalent library interfaces.
-	\item
-		It is based on \pyop2~\cite{rathgeberPyOP2HighLevelFramework2012}, and work is in progress to replace \pyop2 with \pyop3 in the Firedrake finite element framework~\cite{FiredrakeUserManual}.
-\end{itemize}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.3\textwidth]{codegen.pdf}
-	\caption{Simplified example of the code generated from a \pyop3 loop expression.}
-	\label{fig:codegen}
-\end{figure}
-
-\subsection{References}
-
-\vspace{1em}
-
-\begingroup
-\setstretch{0.8}
-\setlength\bibitemsep{0pt}
-\printbibliography[heading=none]
-\endgroup
 
 \columnbreak
 
@@ -221,27 +190,56 @@
 %----------------------------------------------------------------------------------------
 
 \vspace{-1em}
-\section{3. A new abstraction for mesh data}
+\section{The \pyop3 language}
 \vspace{-.8em}
 
-\begin{itemize}
-	\item
-		To achieve this, \pyop3 necessarily has a much richer abstraction for describing unstructured data layouts than simple ND-arrays: the \emph{axis tree} (\cref{fig:axis_tree}).
-	\item
-		...Having a richer abstraction for data layouts makes composition easier, and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
-\end{itemize}
+\pyop3 is a domain-specific language (DSL) that is embedded in Python.
+Users express operations using a numpy-like syntax (\cref{listing:index}) that are just-in-time compiled to high-performance code (\cref{fig:codegen}).
 
 \begin{figure}[H]
-	\includegraphics[width=\columnwidth]{axis_tree.pdf}
-	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\parbox{\columnwidth}{
-		\caption{
-			Graphical representation of an axis tree that describes the data layout shown in \cref{fig:dof_layout}.
-			Unlike ND-arrays, all information is captured by the abstraction.
-		}
-		\label{fig:axis_tree}
+	\centering
+	\begin{minted}[autogobble,fontsize=\small]{python}
+		cell = mesh.cells.iter()
+		vec[closure(cell)][0][::2]
+	\end{minted}
+	\caption{
+		A non-trivial example of \pyop3 numpy-like syntax in action: accessing the even numbered vertices around a cell.
+		\mintinline{python}{closure(cell)} returns all entities that touch the cell and indexing with \mintinline{python}{0} extracts only the vertices.
+		Note both the similarity between this code and typical ND array usage with numpy, and also how indexing operations may be chained together.
 	}
+	\label{listing:index}
 \end{figure}
+
+\vspace{-1em}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\columnwidth]{codegen.pdf}
+	\caption{Simplified example of the code generated from a \pyop3 loop expression.}
+	\label{fig:codegen}
+\end{figure}
+
+Operations in \pyop3 are composable, and so it is possible to express non-trivial looping operations such as that shown in \cref{listing:patch}.
+
+\begin{figure}[H]
+	\centering
+	\begin{minted}[autogobble,fontsize=\small]{python}
+	loop(vertex := mesh.vertices.iter(),
+	     loop(cell := star(vertex, k=2).iter(),
+		  kernel(in_vec[closure(cell)], out_vec[vertex])))
+	\end{minted}
+	\includegraphics[width=.6\columnwidth]{patch.pdf}
+	\caption{
+		\pyop3 loop expression describing an operation over a vertex patch.
+		\mintinline{python}{star(vertex, k=2)} will return all cells that touch the current vertex.
+	}
+	\label{listing:patch}
+\end{figure}
+
+\vspace{-1em}
+\section{Representing mesh data}
+\vspace{-.8em}
+
+To represent mesh data without losing important topological information, \pyop3 necessarily has a much richer abstraction for describing unstructured data layouts than simple ND arrays: the \myblue{axis tree} (\cref{fig:axis_tree}).
 
 \columnbreak
 
@@ -285,6 +283,15 @@ Whilst at a high level the following should also become expressible:
 	\item \myblue{And more!}
 \end{itemize}
 
+% \subsection{References}
+%
+% \vspace{1em}
+%
+% \begingroup
+% \setstretch{0.8}
+% \setlength\bibitemsep{0pt}
+% \printbibliography[heading=none]
+% \endgroup
 
 % Firedrake in the bottom right
 \begin{tikzpicture}[remember picture, overlay]

@@ -11,8 +11,8 @@
 
 \node [box,text width=9.6cm,minimum height=1cm] at (0,0) {
   \begin{minted}[bgcolor=white]{Python}
-loop(cell := mesh.cells.index(),
-        kernel(vec1[cell_to_vertex(cell)], vec2[cell]))
+loop(cell := mesh.cells.iter(),
+        kernel(vec1[closure(cell)], vec2[cell]))
   \end{minted}
 };
 
