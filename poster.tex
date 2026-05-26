@@ -55,6 +55,7 @@
 
 \usepackage{subcaption} % subfigures
 
+\usepackage{amsmath}
 \usepackage{cleveref}
 \usepackage{tikz}
 
@@ -73,7 +74,7 @@
 %	POSTER INFORMATION
 %----------------------------------------------------------------------------------------
 
-\postertitle{\LARGE{\texttt{pyop3:}}\\ \large{An Execution Abstraction for Compact\\ Computational Kernels on Unstructured Meshes}}
+\postertitle{\LARGE{\texttt{pyop3:}} \large{Extending the tensor abstraction to unstructured meshes}}
 
 % Contributor/author names, can be split across multiple lines manually with \\
 % Add affiliations using the \affiliation{} command
@@ -112,7 +113,7 @@ Their popularity as an abstraction is due to two factors:
 \vspace{-1em}
 \begin{enumerate}
 	\item
-		It is a very natural programming model for many domains.
+		It is a natural programming model for many domains.
 	\item
 		Tensor operations may be compiled to extremely high performance code.
 \end{enumerate}
@@ -247,26 +248,53 @@ To represent mesh data without losing important topological information, \pyop3 
 %	THIRD COLUMN
 %----------------------------------------------------------------------------------------
 
-\section{4. GPU support}
+In the same way that the shape of an ND array allows one to access a flat buffer using a multi-index, axis trees allow \pyop3 to interpret a flat buffer in terms of spaces, mesh entities and more.
+In effect, it provides queries of the form:
 
-\begin{itemize}
-	\item
-		Just like many machine learning frameworks, \pyop3 is agnostic to the underlying hardware and in principle can generate code to execute on arbitrary platforms.
-	\item
-		Preliminary support for NVIDIA GPUs has already been merged.
-	\item
-		Next steps are... (cite MLIR)
-\end{itemize}
+\begin{equation}
+	\mathrm{multi-index} \to \mathrm{offset}
+\end{equation}
+
+Which, in the case of \cref{fig:axis_tree}, would give:
+
+\begin{equation}
+\begin{split}
+	&([P_3]^2, v_2, n_0, d_1) \to 5 \\
+	&(P_2^\mathrm{disc}, c_0, n_3, d_0) \to 24
+\end{split}
+\end{equation}
+
+Since axis trees know how to turn abstract indices into array offsets, indexing operations such as those seen in \cref{listing:index,fig:codegen,listing:patch} are possible via axis tree transformations.
+
+\begin{figure}[H]
+	\centering
+	\begin{minted}[autogobble,fontsize=\small]{python}
+	axes = AxisTree.from_nest({
+	  Axis("space", {"u": 1, "p": 1}): [
+	    {Axis("mesh", {0: nverts, 1: nedges, 2: ncells): [
+	      Axis("dof", 1), Axis("dof", 2), Axis("dof", 1),
+	    ]},
+	    Axis("mesh", {0: nverts, 1: nedges, 2: ncells): [...]
+	  ],
+	})
+	vec = op3.Dat.zeros(axes, dtype=float64)
+	\end{minted}
+	\caption{
+		Simplified \pyop3 code constructing a vector (termed a `dat') with a data layout (axis tree) similar to that shown in \cref{fig:axis_tree}.
+	}
+	\label{listing:axis_tree}
+\end{figure}
 
 \vspace{-1em}
-\section{4. Future work}
+\section{Future research}
 \vspace{-.8em}
 
-Once \pyop3 has been fully integrated into Firedrake there is scope for a variety of performance improvements and avenues of research to pursue.
+\pyop3 enables a variety of research avenues.
 Possible low-level changes include:
 
 \vspace{-.8em}
 \begin{itemize}
+	\item GPU support via MLIR (ongoing)
 	\item Data layout transformations
 	\item Loop tiling
 \end{itemize}
