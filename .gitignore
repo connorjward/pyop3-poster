@@ -2,6 +2,7 @@
 *.log
 *.fls
 *.fdb_latexmk
+_minted/
 _minted-codegen/
 *.pdf
 *.bbl

@@ -25,7 +25,7 @@
 
 \documentclass[
 	%print, % Uncomment to convert colors to CMYK for printing purposes
-	a1papersize, % Uncomment to use an A1 paper size instead of the default A0 paper size
+	% a1papersize, % Uncomment to use an A1 paper size instead of the default A0 paper size
 ]{ImperialPoster}
 
 \usepackage[style=numeric,maxnames=2,minnames=2]{biblatex} % bibliography
@@ -87,23 +87,6 @@
 %	ABSTRACT
 %----------------------------------------------------------------------------------------
 
-% The execution of compact computational kernels is ubiquitous in continuum mechanics simulations.
-% These "local" kernels, often hand-written, are executed repeatedly as part of an outer loop
-% over (usually) the cells or facets of the mesh, with the relevant parts of the global data
-% structures loaded into local temporaries as required.
-%
-% Whilst initially appearing to be a simple task, this pack/unpack execution model is
-% surprisingly complicated. Performance portability considerations often require intrusive
-% changes (e.g. data layout transformations, different programming languages, manual
-% vectorisation) that would require either rewriting the outer loop time and time again or
-% sacrificing performance.
-%
-% In this work we present pyop3, a new framework for handling mesh iteration problems. pyop3
-% uses code generation to produce the different loops automatically from a high-level
-% representation. Core to its design is a novel data layout abstraction that bridges the gap
-% between unstructured mesh data and traditional N-dimensional arrays. Work is currently under
-% way to integrate pyop3 into the finite element package Firedrake, with the hope that it
-% facilitates the development of new numerical methods and performance optimisations.
 
 %----------------------------------------------------------------------------------------
 
@@ -111,11 +94,73 @@
 
 \titlesection
 
-\begin{multicols}{2}
+\begin{multicols}{3}
 
 %----------------------------------------------------------------------------------------
 %	FIRST COLUMN
 %----------------------------------------------------------------------------------------
+
+\vspace{-1em}
+\section{FEM data $\neq$ ND-arrays}
+\vspace{-.8em}
+
+\begin{itemize}
+	\item
+		N-dimensional (ND) arrays are the backbone of many areas of computational science. In particular they underpin the entire field of machine learning.
+	\item
+		Why are they good? Nice abstraction, good to program with..., can optimise
+	\item
+		Data structures for the finite element method (FEM) do not conveniently fit into this paradigm.
+		unstructured mesh... different topological entities... parallel..
+	\item
+		This prohibits the sort of development that we see in ML...
+	\item
+		\myblue{pyop3 is this missing abstraction...}
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\hfill
+	\begin{subfigure}{.32\columnwidth}
+		\centering
+		\includegraphics[width=.7\textwidth]{ref_triangle.pdf}
+	\end{subfigure}
+	\begin{subfigure}{.32\columnwidth}
+		\centering
+		\includegraphics[width=.7\textwidth]{lagrange_element_3_vec.pdf}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{.32\columnwidth}
+		\centering
+		\includegraphics[width=.7\textwidth]{lagrange_element_2_dg.pdf}
+	\end{subfigure}
+	\hfill
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{\columnwidth}{
+		\caption{
+			The Scott-Vogelius finite element pair $[P_3]^2 \oplus P_2^\mathrm{disc}$ (middle and right) on a reference triangle (left).
+			DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
+			$P_2^\mathrm{disc}$ (right) is discontinuous, so all the DoFs are considered to belong to the cell.
+		}
+		\label{fig:sv_element}
+	}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=\columnwidth]{sv_element_dof_layout.pdf}
+	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
+	\parbox{\columnwidth}{
+		\caption{
+			The data layout structure for a one-cell mesh of the finite element pair in \cref{fig:sv_element}.
+			It is not possible to capture all of this detail using an ND-array.
+		}
+		\label{fig:dof_layout}
+	}
+\end{figure}
+
+\section{Core concepts in \pyop3}
+
+\section{The \pyop3 language}
 
 \vspace{-1em}
 \section{1. Motivation}
@@ -181,63 +226,39 @@
 
 \begin{itemize}
 	\item
-		Mesh data has a complicated structure (\cref{fig:sv_element}, \cref{fig:dof_layout}) that maps poorly to existing ways of describing data layouts, like N-dimensional arrays.
+		To achieve this, \pyop3 necessarily has a much richer abstraction for describing unstructured data layouts than simple ND-arrays: the \emph{axis tree} (\cref{fig:axis_tree}).
 	\item
-		Unlike \pyop2, \pyop3 is capable of fully describing complex mesh data layouts using \myblue{axis trees} (\cref{fig:axis_tree}).
-	\item
-		Having a richer abstraction for data layouts makes composition easier, and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
+		...Having a richer abstraction for data layouts makes composition easier, and thus \pyop3 is able to describe and generate code for a wider range of problems than \pyop2.
 \end{itemize}
 
 \begin{figure}[H]
-	\centering
-	\hfill
-	\begin{subfigure}{.16\textwidth}
-		\centering
-		\includegraphics[width=.7\textwidth]{ref_triangle.pdf}
-	\end{subfigure}
-	\begin{subfigure}{.16\textwidth}
-		\centering
-		\includegraphics[width=.7\textwidth]{lagrange_element_3_vec.pdf}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}{.16\textwidth}
-		\centering
-		\includegraphics[width=.7\textwidth]{lagrange_element_2_dg.pdf}
-	\end{subfigure}
-	\hfill
+	\includegraphics[width=\columnwidth]{axis_tree.pdf}
 	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\parbox{0.49\textwidth}{
+	\parbox{\columnwidth}{
 		\caption{
-			The Scott-Vogelius finite element pair $[P_3]^2 \oplus P_2^\mathrm{disc}$ (middle and right) on a reference triangle (left).
-			DoFs associated with vertices, edges and cells are shown in green, red and blue respectively.
-			$P_2^\mathrm{disc}$ (right) is discontinuous, so all the DoFs are considered to belong to the cell.
-		}
-		\label{fig:sv_element}
-	}
-\end{figure}
-
-\begin{figure}[H]
-	\includegraphics[width=0.49\textwidth]{sv_element_dof_layout.pdf}
-	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\parbox{0.49\textwidth}{
-		\caption{
-			Different views of a possible data layout for a one-cell mesh of the finite element pair in \cref{fig:sv_element}.
-		}
-		\label{fig:dof_layout}
-	}
-\end{figure}
-
-
-\begin{figure}[H]
-	\includegraphics[width=0.49\textwidth]{axis_tree.pdf}
-	% Caption needs to be in a parbox of the same width as the figure in order to span the same width
-	\parbox{0.49\textwidth}{
-		\caption{
-			An axis tree that describes the data layout shown in \cref{fig:dof_layout}.
+			Graphical representation of an axis tree that describes the data layout shown in \cref{fig:dof_layout}.
+			Unlike ND-arrays, all information is captured by the abstraction.
 		}
 		\label{fig:axis_tree}
 	}
 \end{figure}
+
+\columnbreak
+
+%----------------------------------------------------------------------------------------
+%	THIRD COLUMN
+%----------------------------------------------------------------------------------------
+
+\section{4. GPU support}
+
+\begin{itemize}
+	\item
+		Just like many machine learning frameworks, \pyop3 is agnostic to the underlying hardware and in principle can generate code to execute on arbitrary platforms.
+	\item
+		Preliminary support for NVIDIA GPUs has already been merged.
+	\item
+		Next steps are... (cite MLIR)
+\end{itemize}
 
 \vspace{-1em}
 \section{4. Future work}
@@ -248,7 +269,6 @@ Possible low-level changes include:
 
 \vspace{-.8em}
 \begin{itemize}
-	\item GPU support (high priority)
 	\item Data layout transformations
 	\item Loop tiling
 \end{itemize}
@@ -264,6 +284,7 @@ Whilst at a high level the following should also become expressible:
 	\item Particle methods
 	\item \myblue{And more!}
 \end{itemize}
+
 
 % Firedrake in the bottom right
 \begin{tikzpicture}[remember picture, overlay]
