@@ -25,8 +25,8 @@ void pyop3_kernel(array_0, array_1, array_2) {
     for (int32_t i_1 = 0; i_1 < 3; ++i_1)
         t_0[i_1] = array_0[array_1[3 * i_0 + i_1]];
     t_1[0] = 0.0;
-    kernel(&(t_0[0]), &(t_1[0]));
-    array_2[i_0] = array_2[i_0] + t_1[0];
+    kernel(t_0, t_1);
+    array_2[i_0] += t_1[0];
   }
 }
   \end{minted}

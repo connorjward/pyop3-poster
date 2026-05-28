@@ -78,13 +78,13 @@
 
 % Contributor/author names, can be split across multiple lines manually with \\
 % Add affiliations using the \affiliation{} command
-\posterauthors{Connor J. Ward\\ David A. Ham\\ Jack D. Betteridge\\~\\c.ward20@imperial.ac.uk}
+\posterauthors{Connor J. Ward\affiliation{1}\\ David A. Ham\affiliation{1}\\ Jack D. Betteridge\affiliation{2}}
 
 % Command to output coauthor logos to the right of the Imperial logo in the header of the poster
 % If no coauthor logos are required, remove or comment out this command
-% \coauthorlogos{
-% 	\coauthorlogo[3.5cm]{firedrake.png}
-% }
+\coauthorlogos{
+	\coauthorlogo[4.5cm]{firedrake.png}
+}
 
 %----------------------------------------------------------------------------------------
 %	ABSTRACT
@@ -113,24 +113,25 @@ Their popularity as an abstraction is due to two factors:
 \vspace{-1em}
 \begin{enumerate}
 	\item
-		It is a natural programming model for many domains.
+		Hierarchically structured data is a natural programming model for many domains.
 	\item
-		Tensor operations may be compiled to extremely high performance code.
+		Tensor operations can be compiled to extremely high performance code.
 \end{enumerate}
 
-Unfortunately, ND arrays are not a suitable fit for calculations that involve unstructured meshes:
+However, ND arrays are not a suitable fit for calculations that involve unstructured meshes:
 \vspace{-1em}
 \begin{enumerate}
 	\item
 		Mesh data can be associated with different topological entities (e.g. cells and/or vertices, \cref{fig:sv_element}).
-		This results in 'ragged' dimensions in the data structure (\cref{fig:dof_layout}) that cannot be represented using typical ND arrays.
+		This results in `ragged' dimensions in the data structure that cannot be represented using typical ND arrays (\cref{fig:dof_layout}).
 	\item
 		Mesh data are distributed in parallel and have complicated processes for ensuring global correctness.
 \end{enumerate}
 
 \myblue{\pyop3 is this missing abstraction.}
-It is a library that provides a \myblue{numpy-like interface for unstructured mesh data} that is compiled to fast code.
-Just like PyTorch and JAX, \pyop3 will allow users to easily develop complex and performant numerical methods by composing operations at a convenient level of abstraction.
+It is a library that provides a \myblue{numpy-like interface for interacting with unstructured mesh data}.
+\myblue{Just-in-time compilation} is used to make the operations performant.
+Just like PyTorch and JAX for ML, and Firedrake for FEM, \pyop3 provides a flexible, high-level, intuitive interface for building complex and performant programs, only this time for mesh-based simulation.
 
 \begin{figure}[H]
 	\centering
@@ -195,23 +196,24 @@ Just like PyTorch and JAX, \pyop3 will allow users to easily develop complex and
 \vspace{-.8em}
 
 \pyop3 is a domain-specific language (DSL) that is embedded in Python.
-Users express operations using a numpy-like syntax (\cref{listing:index}) that are just-in-time compiled to high-performance code (\cref{fig:codegen}).
+Users express operations using a numpy-like syntax (e.g. \cref{listing:index}) that are just-in-time compiled to high-performance code (\cref{fig:codegen}).
 
+\vspace{-.5em}
 \begin{figure}[H]
 	\centering
-	\begin{minted}[autogobble,fontsize=\small]{python}
-		cell = mesh.cells.iter()
-		vec[closure(cell)][0][::2]
+	\begin{minted}[fontsize=\small]{python}
+  cell = mesh.cells.iter()
+  vec[closure(cell)]["v"][::2]
 	\end{minted}
 	\caption{
 		A non-trivial example of \pyop3 numpy-like syntax in action: accessing the even numbered vertices around a cell.
-		\mintinline{python}{closure(cell)} returns all entities that touch the cell and indexing with \mintinline{python}{0} extracts only the vertices.
+		\mintinline{python}{closure(cell)} returns all entities that touch the cell, and \mintinline{python}{"v"} extracts only the vertices.
 		Note both the similarity between this code and typical ND array usage with numpy, and also how indexing operations may be chained together.
 	}
 	\label{listing:index}
 \end{figure}
 
-\vspace{-1em}
+\vspace{-.5em}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\columnwidth]{codegen.pdf}
@@ -232,6 +234,7 @@ Operations in \pyop3 are composable, and so it is possible to express non-trivia
 	\caption{
 		\pyop3 loop expression describing an operation over a vertex patch.
 		\mintinline{python}{star(vertex, k=2)} will return all cells that touch the current vertex.
+		Note that the inner loop over cells is `ragged' (has non-constant extent).
 	}
 	\label{listing:patch}
 \end{figure}
@@ -240,7 +243,15 @@ Operations in \pyop3 are composable, and so it is possible to express non-trivia
 \section{Representing mesh data}
 \vspace{-.8em}
 
-To represent mesh data without losing important topological information, \pyop3 necessarily has a much richer abstraction for describing unstructured data layouts than simple ND arrays: the \myblue{axis tree} (\cref{fig:axis_tree}).
+The core capability that ND arrays provide is the ability to address a block of memory using a set of indices (multi-index).
+They do this via an \myblue{index expression} of the form
+\begin{equation*}
+	(i_0, i_1, \dots, i_n) \to \mathit{offset}
+\end{equation*}
+An ND array is composed of multiple \myblue{axes} and is addressed with an \myblue{index per axis}.
+
+As an example, consider an array with shape \mintinline{text}{(3, 2)}.
+It has 2 axes with extents 3 and 2, and has offset expression $2i_0+i_1$.
 
 \columnbreak
 
@@ -248,33 +259,30 @@ To represent mesh data without losing important topological information, \pyop3 
 %	THIRD COLUMN
 %----------------------------------------------------------------------------------------
 
-In the same way that the shape of an ND array allows one to access a flat buffer using a multi-index, axis trees allow \pyop3 to interpret a flat buffer in terms of spaces, mesh entities and more.
-In effect, it provides queries of the form:
+To represent mesh data without losing important topological information, \pyop3 necessarily has a much richer abstraction for describing unstructured data layouts than simple ND arrays: the \myblue{axis tree}.
 
-\begin{equation}
-	\mathrm{multi-index} \to \mathrm{offset}
-\end{equation}
+Like ND arrays, an axis tree is composed of multiple axes and has the ability to convert a multi-index into an offset.
+However, in \pyop3, axes are composed of 1 or more \myblue{components}.
+This means that axes are able to \myblue{branch}.
 
-Which, in the case of \cref{fig:axis_tree}, would give:
-
-\begin{equation}
+By permitting branching, axis trees can represent the heterogeneous types of data needed for unstructured mesh calculations.
+For example, they can represent multi-field and multi-entity data layouts like that shown in \cref{fig:dof_layout} (see \cref{fig:axis_tree}) where the offset expressions include
+\begin{equation*}
 \begin{split}
 	&([P_3]^2, v_2, n_0, d_1) \to 5 \\
 	&(P_2^\mathrm{disc}, c_0, n_3, d_0) \to 24
 \end{split}
-\end{equation}
-
-Since axis trees know how to turn abstract indices into array offsets, indexing operations such as those seen in \cref{listing:index,fig:codegen,listing:patch} are possible via axis tree transformations.
+\end{equation*}
 
 \begin{figure}[H]
 	\centering
 	\begin{minted}[autogobble,fontsize=\small]{python}
 	axes = AxisTree.from_nest({
 	  Axis("space", {"u": 1, "p": 1}): [
-	    {Axis("mesh", {0: nverts, 1: nedges, 2: ncells): [
+	    {Axis("mesh", {"v": nverts, "e": nedges, "c": ncells): [
 	      Axis("dof", 1), Axis("dof", 2), Axis("dof", 1),
 	    ]},
-	    Axis("mesh", {0: nverts, 1: nedges, 2: ncells): [...]
+	    Axis("mesh", {"v": nverts, "e": nedges, "c": ncells): [...]
 	  ],
 	})
 	vec = op3.Dat.zeros(axes, dtype=float64)
@@ -285,47 +293,57 @@ Since axis trees know how to turn abstract indices into array offsets, indexing 
 	\label{listing:axis_tree}
 \end{figure}
 
-\vspace{-1em}
-\section{Future research}
-\vspace{-.8em}
+Axis trees underpin \pyop3's expressive syntax because complex indexing operations (e.g. \cref{listing:index,fig:codegen,listing:patch}) are simply axis tree transformations.
 
-\pyop3 enables a variety of research avenues.
-Possible low-level changes include:
+An additional benefit of axis trees is that they \myblue{decouple data semantics from implementation} - one can permute axes of the axis tree to achieve a semantically equivalent data structure with a different data layout.
 
-\vspace{-.8em}
-\begin{itemize}
-	\item GPU support via MLIR (ongoing)
-	\item Data layout transformations
-	\item Loop tiling
-\end{itemize}
-
-\vspace{-.8em}
-Whilst at a high level the following should also become expressible:
-
-\vspace{-.8em}
-\begin{itemize}
-	\item Physics-based preconditioners
-	\item Slope limiters
-	\item Adaptivity
-	\item Particle methods
-	\item \myblue{And more!}
-\end{itemize}
-
-% \subsection{References}
+% \vspace{-1em}
+% \section{Future work}
+% \vspace{-.8em}
 %
-% \vspace{1em}
+% \pyop3 opens the door to lots of new research.
+% Possible low level extensions include:
 %
-% \begingroup
-% \setstretch{0.8}
-% \setlength\bibitemsep{0pt}
-% \printbibliography[heading=none]
-% \endgroup
+% \vspace{-.8em}
+% \begin{itemize}
+% 	\item GPU support via MLIR (ongoing)
+% 	\item Data layout transformations
+% 	\item Loop tiling, kernel fusion, etc
+% \end{itemize}
+%
+% \vspace{-.8em}
+% Whilst at a high level the following should be possible to express:
+%
+% \vspace{-.8em}
+% \begin{itemize}
+% 	\item Physics-based preconditioners
+% 	\item Slope limiters
+% 	\item Adaptivity
+% 	\item Particle methods
+% 	\item \myblue{And more!}
+% \end{itemize}
+
+\subsection{References}
+
+\vspace{1em}
+
+\begingroup
+\setstretch{0.8}
+\setlength\bibitemsep{0pt}
+\printbibliography[heading=none]
+\endgroup
+
+\subsection{Affiliations}
+
+% Affiliation institutions, the first parameter is the affiliation number (matching the author list) and the second is the institution
+\affiliationentry{1}{Department of Mathematics, Imperial College London}\\
+\affiliationentry{2}{Devito Codes}
 
 % Firedrake in the bottom right
-\begin{tikzpicture}[remember picture, overlay]
-  \node [anchor=south east,inner sep=0pt,xshift=-5cm,yshift=6cm]  at (current page.south east)
-     {\includegraphics[height=5cm]{firedrake.png}};
-\end{tikzpicture}
+% \begin{tikzpicture}[remember picture, overlay]
+%   \node [anchor=south east,inner sep=0pt,xshift=-5cm,yshift=6cm]  at (current page.south east)
+%      {\includegraphics[height=5cm]{firedrake.png}};
+% \end{tikzpicture}
 
 %----------------------------------------------------------------------------------------
 
