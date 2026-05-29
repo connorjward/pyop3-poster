@@ -28,6 +28,23 @@
 	% a1papersize, % Uncomment to use an A1 paper size instead of the default A0 paper size
 ]{ImperialPoster}
 
+\usepackage{subcaption} % subfigures
+
+\usepackage{amsmath}
+\usepackage{cleveref}
+\usepackage{tikz}
+
+\usepackage{minted}
+
+% https://tex.stackexchange.com/questions/17360/reduce-spacing-in-bibliography-using-biblatex
+\usepackage{setspace}
+
+% hacky way to get \pyop2 and \pyop3 as valid macros
+% source: https://tex.stackexchange.com/questions/13290/how-to-define-macros-with-numbers-in-them
+\def\pyop#1{\ifnum#1=2 {PyOP2}\else \ifnum#1=3 {\texttt{pyop3}}\fi \fi}
+
+\newcommand{\myblue}[1]{\textcolor{ICLBlue}{#1}}
+
 \usepackage[style=numeric,maxnames=2,minnames=2]{biblatex} % bibliography
 	\addbibresource{bibliography.bib}
 	\AtBeginBibliography{\small}
@@ -53,22 +70,6 @@
 		%\clearfield{volume}
 	}
 
-\usepackage{subcaption} % subfigures
-
-\usepackage{amsmath}
-\usepackage{cleveref}
-\usepackage{tikz}
-
-\usepackage{minted}
-
-% https://tex.stackexchange.com/questions/17360/reduce-spacing-in-bibliography-using-biblatex
-\usepackage{setspace}
-
-% hacky way to get \pyop2 and \pyop3 as valid macros
-% source: https://tex.stackexchange.com/questions/13290/how-to-define-macros-with-numbers-in-them
-\def\pyop#1{\ifnum#1=2 {PyOP2}\else \ifnum#1=3 {\texttt{pyop3}}\fi \fi}
-
-\newcommand{\myblue}[1]{\textcolor{ICLBlue}{#1}}
 
 %----------------------------------------------------------------------------------------
 %	POSTER INFORMATION
@@ -107,7 +108,7 @@
 \section{Mesh data $\neq$ ND arrays}
 \vspace{-.8em}
 
-N-dimensional (ND) arrays are the backbone of many areas of computational science. In particular they underpin machine learning frameworks such as PyTorch and JAX.
+N-dimensional (ND) arrays are the backbone of many areas of computational science. In particular they underpin machine learning frameworks such as PyTorch\cite{pytorch} and JAX\cite{jax}.
 
 Their popularity as an abstraction is due to two factors:
 \vspace{-1em}
@@ -131,7 +132,7 @@ However, ND arrays are not a suitable fit for calculations that involve unstruct
 \myblue{\pyop3 is this missing abstraction.}
 It is a library that provides a \myblue{numpy-like interface for interacting with unstructured mesh data}.
 \myblue{Just-in-time compilation} is used to make the operations performant.
-Just like PyTorch and JAX for ML, and Firedrake for FEM, \pyop3 provides a flexible, high-level, intuitive interface for building complex and performant programs, only this time for mesh-based simulation.
+Just like PyTorch and JAX for ML, and Firedrake for FEM\cite{firedrake}, \pyop3 provides a flexible, high-level, intuitive interface for building complex and performant programs, only this time for mesh-based simulation.
 
 \begin{figure}[H]
 	\centering
