@@ -75,7 +75,7 @@
 %	POSTER INFORMATION
 %----------------------------------------------------------------------------------------
 
-\postertitle{\LARGE{\texttt{pyop3:}} \large{Extending the tensor abstraction to unstructured meshes}}
+\postertitle{\LARGE{\texttt{pyop3}}\\\Large{Extending the tensor abstraction to unstructured meshes}}
 
 % Contributor/author names, can be split across multiple lines manually with \\
 % Add affiliations using the \affiliation{} command
@@ -199,17 +199,18 @@ Just like PyTorch and JAX for ML, and Firedrake for FEM\cite{firedrake}, \pyop3 
 \pyop3 is a domain-specific language (DSL) that is embedded in Python.
 Users express operations using a numpy-like syntax (e.g. \cref{listing:index}) that are just-in-time compiled to high-performance code (\cref{fig:codegen}).
 
-\vspace{-.5em}
 \begin{figure}[H]
 	\centering
+\vspace{-.2em}
 	\begin{minted}[fontsize=\small]{python}
   cell = mesh.cells.iter()
   vec[closure(cell)]["v"][::2]
 	\end{minted}
+\vspace{-.2em}
 	\caption{
 		A non-trivial example of \pyop3 numpy-like syntax in action: accessing the even numbered vertices around a cell.
 		\mintinline{python}{closure(cell)} returns all entities that touch the cell, and \mintinline{python}{"v"} extracts only the vertices.
-		Note both the similarity between this code and typical ND array usage with numpy, and also how indexing operations may be chained together.
+		Note both the similarity between this code and typical ND array usage, and also how indexing operations may be chained together.
 	}
 	\label{listing:index}
 \end{figure}
@@ -222,7 +223,7 @@ Users express operations using a numpy-like syntax (e.g. \cref{listing:index}) t
 	\label{fig:codegen}
 \end{figure}
 
-Operations in \pyop3 are composable, and so it is possible to express non-trivial looping operations such as that shown in \cref{listing:patch}.
+Operations in \pyop3 are composable, and so it is possible to express non-trivial looping operations (e.g. \cref{listing:patch}) and more.
 
 \begin{figure}[H]
 	\centering
@@ -250,9 +251,8 @@ They do this via an \myblue{index expression} of the form
 	(i_0, i_1, \dots, i_n) \to \mathit{offset}
 \end{equation*}
 An ND array is composed of multiple \myblue{axes} and is addressed with an \myblue{index per axis}.
-
-As an example, consider an array with shape \mintinline{text}{(3, 2)}.
-It has 2 axes with extents 3 and 2, and has offset expression $2i_0+i_1$.
+Consider an array with shape \mintinline{text}{(3, 2)}.
+It has 2 axes with extents 3 and 2, and its offset expression is $2i_0+i_1$.
 
 \columnbreak
 
@@ -267,7 +267,7 @@ However, in \pyop3, axes are composed of 1 or more \myblue{components}.
 This means that axes are able to \myblue{branch}.
 
 By permitting branching, axis trees can represent the heterogeneous types of data needed for unstructured mesh calculations.
-For example, they can represent multi-field and multi-entity data layouts like that shown in \cref{fig:dof_layout} (see \cref{fig:axis_tree}) where the offset expressions include
+For example, they can represent multi-field and multi-entity data layouts like that shown in \cref{fig:axis_tree} where the offset expressions include:
 \begin{equation*}
 \begin{split}
 	&([P_3]^2, v_2, n_0, d_1) \to 5 \\
@@ -280,10 +280,12 @@ For example, they can represent multi-field and multi-entity data layouts like t
 	\begin{minted}[autogobble,fontsize=\small]{python}
 	axes = AxisTree.from_nest({
 	  Axis("space", {"u": 1, "p": 1}): [
-	    {Axis("mesh", {"v": nverts, "e": nedges, "c": ncells): [
+	    {Axis("mesh", {"v": nvert, "e": nedge, "c": ncell): [
 	      Axis("dof", 1), Axis("dof", 2), Axis("dof", 1),
 	    ]},
-	    Axis("mesh", {"v": nverts, "e": nedges, "c": ncells): [...]
+	    Axis("mesh", {"v": nvert, "e": nedge, "c": ncell): [
+	      ...
+	    ]
 	  ],
 	})
 	vec = op3.Dat.zeros(axes, dtype=float64)
